@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
  */
 public class EnvironmentUtil {
 
-	private String prefix = "elastic.job.";
+	private static String prefix = "elastic.job.";
 
 	/**
 	 * 获取配置中的任务属性值，environment没有就用注解中的值
@@ -20,7 +20,7 @@ public class EnvironmentUtil {
 	 * @param defaultValue 默认值
 	 * @return
 	 */
-	public String getEnvironmentStringValue(Environment environment, String jobName, String fieldName, String defaultValue) {
+	public static String getEnvironmentStringValue(Environment environment, String jobName, String fieldName, String defaultValue) {
 		String key = prefix + jobName + "." + fieldName;
 		String value = environment.getProperty(key);
 		if (StringUtils.hasText(value)) {
@@ -38,7 +38,7 @@ public class EnvironmentUtil {
 	 * @param defaultValue
 	 * @return
 	 */
-	public int getEnvironmentIntValue(Environment environment, String jobName, String fieldName, int defaultValue) {
+	public static int getEnvironmentIntValue(Environment environment, String jobName, String fieldName, int defaultValue) {
 		String key = prefix + jobName + "." + fieldName;
 		String value = environment.getProperty(key);
 		if (StringUtils.hasText(value)) {
@@ -56,7 +56,7 @@ public class EnvironmentUtil {
 	 * @param defaultValue
 	 * @return
 	 */
-	public long getEnvironmentLongValue(Environment environment, String jobName, String fieldName, long defaultValue) {
+	public static long getEnvironmentLongValue(Environment environment, String jobName, String fieldName, long defaultValue) {
 		String key = prefix + jobName + "." + fieldName;
 		String value = environment.getProperty(key);
 		if (StringUtils.hasText(value)) {
@@ -74,7 +74,7 @@ public class EnvironmentUtil {
 	 * @param defaultValue
 	 * @return
 	 */
-	public boolean getEnvironmentBooleanValue(Environment environment, String jobName, String fieldName, boolean defaultValue) {
+	public static boolean getEnvironmentBooleanValue(Environment environment, String jobName, String fieldName, boolean defaultValue) {
 		String key = prefix + jobName + "." + fieldName;
 		String value = environment.getProperty(key);
 		if (StringUtils.hasText(value)) {
