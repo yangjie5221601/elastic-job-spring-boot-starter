@@ -24,7 +24,7 @@ public class ElasticJobAutoConfiguration {
 	 *
 	 * @return
 	 */
-	@Bean
+	@Bean(initMethod = "init")
 	public ZookeeperRegistryCenter zookeeperRegistryCenter() {
 		ZookeeperConfiguration config = new ZookeeperConfiguration(zkConfigurationProperties.getServerLists(), zkConfigurationProperties.getNamespace());
 		config.setBaseSleepTimeMilliseconds(zkConfigurationProperties.getBaseSleepTimeMilliseconds());
