@@ -113,9 +113,9 @@ public class JobConfParserUtil implements ApplicationContextAware {
 				factory.addConstructorArgValue(jobConfig);
 				factory.addConstructorArgValue(elasticJobListeners);
 				DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-				defaultListableBeanFactory.registerBeanDefinition("SpringJobScheduler", factory.getBeanDefinition());
-				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean("SpringJobScheduler");
-				springJobScheduler.init();
+				defaultListableBeanFactory.registerBeanDefinition("SpringJobScheduler-" + job.getJobName(), factory.getBeanDefinition());
+//				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean("SpringJobScheduler");
+//				springJobScheduler.init();
 			}
 
 
@@ -174,6 +174,6 @@ public class JobConfParserUtil implements ApplicationContextAware {
 		int monitorPort = EnvironmentUtil.getEnvironmentIntValue(environment, jobName, JobConfigPropertiesConstant.MONITOR_PORT, conf.monitorPort());
 		int maxTimeDiffSeconds = EnvironmentUtil.getEnvironmentIntValue(environment, jobName, JobConfigPropertiesConstant.MAX_TIME_DIFF_SECONDS, conf.maxTimeDiffSeconds());
 		int reconcileIntervalMinutes = EnvironmentUtil.getEnvironmentIntValue(environment, jobName, JobConfigPropertiesConstant.RECONCILE_INTERVAL_MINUTES, conf.reconcileIntervalMinutes());
-		return ElasticJob.builder().reconcileIntervalMinutes(reconcileIntervalMinutes).maxTimeDiffSeconds(maxTimeDiffSeconds).monitorPort(monitorPort).shardingTotalCount(shardingTotalCount).streamingProcess(streamingProcess).monitorExecution(monitorExecution).disabled(disabled).overwrite(overwrite).misfire(misfire).failover(failover).scriptCommandLine(scriptCommandLine).jobShardingStrategyClass(jobShardingStrategyClass).executorServiceHandle(executorServiceHandler).jobClass(jobClass).jobName(jobName).jobClass(cron).shardingItemParameters(shardingItemParameters).description(description).jobParameter(jobParameter).jobExceptionHanprivatedler(jobExceptionHandler).build();
+		return ElasticJob.builder().reconcileIntervalMinutes(reconcileIntervalMinutes).maxTimeDiffSeconds(maxTimeDiffSeconds).monitorPort(monitorPort).shardingTotalCount(shardingTotalCount).streamingProcess(streamingProcess).monitorExecution(monitorExecution).disabled(disabled).overwrite(overwrite).misfire(misfire).failover(failover).scriptCommandLine(scriptCommandLine).jobShardingStrategyClass(jobShardingStrategyClass).executorServiceHandle(executorServiceHandler).jobClass(jobClass).jobName(jobName).jobClass(jobClass).shardingItemParameters(shardingItemParameters).description(description).jobParameter(jobParameter).cron(cron).jobExceptionHanprivatedler(jobExceptionHandler).build();
 	}
 }
