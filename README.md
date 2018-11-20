@@ -1,5 +1,4 @@
 # elastic-job-spring-boot-starter
-                          elastic-job-spring-boot-starter
 1 elastic-job-spring-boot-starter简介
   Elastic-Job-Lite定位为轻量级无中心化解决方案，使用jar包的形式提供分布式任务的协调服务.这个是基于elasetic-job的spring-boot-starter.
   
@@ -10,19 +9,18 @@
   com.chuangxin.elastic.job.config: config包
   com.chuangxin.elastic.job.annotations: 注解包。elasticjobconfig注解
   com.chuangxin.elastic.job.autoconfig: 
+  
 3 Quick Start
      3.1 添加maven依赖
             <dependency>
-
-                   <groupId>com.chuangxin</groupId>
-
-                   <artifactId>elastic-job-spring-boot-starter</artifactId>
-                   <version>1.0.0</version>
-          </dependency>
+                <groupId>com.chuangxin</groupId>
+                <artifactId>elastic-job-spring-boot-starter</artifactId>
+                <version>1.0.0</version>
+            </dependency>
 
       3.2 application.yml添加以下配置项
             elastic.job.zk.serverLists=localhost:2181 //多个zk逗号分割
-           elastic.job.zk.namespace=order-wtable-job
+            elastic.job.zk.namespace=order-wtable-job
 
       3.3 定义任务
        @Log4j2
