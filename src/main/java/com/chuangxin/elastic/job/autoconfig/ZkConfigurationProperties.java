@@ -1,6 +1,7 @@
 package com.chuangxin.elastic.job.autoconfig;
 
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -10,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "elastic.job.zk")
 @Data
+@ConditionalOnProperty(prefix = "elastic.job", value = "enable", havingValue = "true")
 public class ZkConfigurationProperties {
 	/**
 	 * 连接Zookeeper服务器的列表. 包括IP地址和端口号. 多个地址用逗号分隔. 如: host1:2181,host2:2181
