@@ -42,6 +42,7 @@ import java.util.Map;
 @Log4j2
 @Import({ElasticJobAutoConfiguration.class})
 public class JobConfParserUtil implements ApplicationContextAware {
+	private static final String SPRING_JOB_SCHEDULER_PREFIX = "SpringJobScheduler-";
 	@Autowired
 	private ZookeeperRegistryCenter zookeeperRegistryCenter;
 
@@ -113,9 +114,9 @@ public class JobConfParserUtil implements ApplicationContextAware {
 				factory.addConstructorArgValue(jobConfig);
 				factory.addConstructorArgValue(elasticJobListeners);
 				DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-				defaultListableBeanFactory.registerBeanDefinition("SpringJobScheduler-" + job.getJobName(), factory.getBeanDefinition());
-//				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean("SpringJobScheduler");
-//				springJobScheduler.init();
+				defaultListableBeanFactory.registerBeanDefinition(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName(), factory.getBeanDefinition());
+				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName());
+				springJobScheduler.init();
 			}
 
 

@@ -4,6 +4,7 @@ import com.chuangxin.elastic.job.util.JobConfParserUtil;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperConfiguration;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * @Date: 2018/11/19 下午3:10
  */
 @Configuration
+@ConditionalOnProperty(prefix = "elastic.job", value = "enable", havingValue = "true")
 @EnableConfigurationProperties(ZkConfigurationProperties.class)
 public class ElasticJobAutoConfiguration {
 	@Autowired
@@ -35,6 +37,7 @@ public class ElasticJobAutoConfiguration {
 		config.setSessionTimeoutMilliseconds(zkConfigurationProperties.getSessionTimeoutMilliseconds());
 		ZookeeperRegistryCenter center = new ZookeeperRegistryCenter(config);
 		return center;
+
 	}
 
 	/**
