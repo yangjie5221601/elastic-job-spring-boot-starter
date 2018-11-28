@@ -11,6 +11,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ElasticJob {
+	private String jobTypeName;
 	private String jobClass;
 	private String jobName;
 	private String cron;
@@ -31,5 +32,9 @@ public class ElasticJob {
 	private int monitorPort;
 	private int maxTimeDiffSeconds;
 	private int reconcileIntervalMinutes;
+	private String distributedListener;
+	private long startedTimeoutMilliseconds;
+	private long completedTimeoutMilliseconds;
+	private String listener;
 
 }

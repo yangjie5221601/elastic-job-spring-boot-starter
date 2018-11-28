@@ -3,33 +3,18 @@ package com.chuangxin.elastic.job.util;
 import com.chuangxin.elastic.job.annotations.ElasticJobConf;
 import com.chuangxin.elastic.job.autoconfig.ElasticJobAutoConfiguration;
 import com.chuangxin.elastic.job.config.JobConfigPropertiesConstant;
-import com.chuangxin.elastic.job.enums.ElasticJobTypeName;
 import com.chuangxin.elastic.job.model.ElasticJob;
-import com.dangdang.ddframe.job.config.JobCoreConfiguration;
-import com.dangdang.ddframe.job.config.JobTypeConfiguration;
-import com.dangdang.ddframe.job.config.dataflow.DataflowJobConfiguration;
-import com.dangdang.ddframe.job.config.script.ScriptJobConfiguration;
-import com.dangdang.ddframe.job.config.simple.SimpleJobConfiguration;
-import com.dangdang.ddframe.job.executor.handler.JobProperties;
-import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
-import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
-import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
+import com.chuangxin.elastic.job.service.DynamicElasticJobService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,9 +27,8 @@ import java.util.Map;
 @Log4j2
 @Import({ElasticJobAutoConfiguration.class})
 public class JobConfParserUtil implements ApplicationContextAware {
-	private static final String SPRING_JOB_SCHEDULER_PREFIX = "SpringJobScheduler-";
 	@Autowired
-	private ZookeeperRegistryCenter zookeeperRegistryCenter;
+	private DynamicElasticJobService dynamicElasticJobService;
 
 
 	@Override
@@ -53,97 +37,10 @@ public class JobConfParserUtil implements ApplicationContextAware {
 		Map<String, Object> beanMap = applicationContext.getBeansWithAnnotation(ElasticJobConf.class);
 		beanMap.forEach((key, value) -> {
 			Class<?> clz = value.getClass();
-			String jobTypeName = value.getClass().getInterfaces()[0].getSimpleName();
 			ElasticJobConf conf = clz.getAnnotation(ElasticJobConf.class);
 			ElasticJob job = convert2Model(conf, environment, clz);
-			// 核心配置
-			JobCoreConfiguration coreConfig =
-					JobCoreConfiguration.newBuilder(job.getJobName(), job.getCron(), job.getShardingTotalCount())
-							.shardingItemParameters(job.getShardingItemParameters())
-							.description(job.getDescription())
-							.failover(job.isFailover())
-							.jobParameter(job.getJobParameter())
-							.misfire(job.isMisfire())
-							.jobProperties(JobProperties.JobPropertiesEnum.JOB_EXCEPTION_HANDLER.getKey(), job.getJobExceptionHanprivatedler())
-							.jobProperties(JobProperties.JobPropertiesEnum.EXECUTOR_SERVICE_HANDLER.getKey(), job.getExecutorServiceHandle())
-							.build();
-
-			// 不同类型的任务配置处理
-			LiteJobConfiguration jobConfig = null;
-			JobTypeConfiguration typeConfig = null;
-
-			ElasticJobTypeName typeName = ElasticJobTypeName.getElasticJobByTypeName(jobTypeName);
-			if (typeName != null) {
-				switch (typeName) {
-					case SIMPLE_JOB: {
-						typeConfig = new SimpleJobConfiguration(coreConfig, job.getJobClass());
-						break;
-					}
-					case DATA_FLOW_JOB: {
-						typeConfig = new DataflowJobConfiguration(coreConfig, job.getJobClass(), job.isStreamingProcess());
-						break;
-					}
-					case SCRIPT_JOB: {
-						typeConfig = new ScriptJobConfiguration(coreConfig, job.getScriptCommandLine());
-						break;
-					}
-					default:
-						break;
-
-				}
-				jobConfig = LiteJobConfiguration.newBuilder(typeConfig)
-						.overwrite(job.isOverwrite())
-						.disabled(job.isDisabled())
-						.monitorPort(job.getMonitorPort())
-						.monitorExecution(job.isMonitorExecution())
-						.maxTimeDiffSeconds(job.getMaxTimeDiffSeconds())
-						.jobShardingStrategyClass(job.getJobShardingStrategyClass())
-						.reconcileIntervalMinutes(job.getReconcileIntervalMinutes())
-						.build();
-
-				List<BeanDefinition> elasticJobListeners = getTargetElasticJobListeners(conf, environment);
-				// 构建SpringJobScheduler对象来初始化任务
-				BeanDefinitionBuilder factory = BeanDefinitionBuilder.rootBeanDefinition(SpringJobScheduler.class);
-				factory.setScope(BeanDefinition.SCOPE_PROTOTYPE);
-				if ("ScriptJob".equals(jobTypeName)) {
-					factory.addConstructorArgValue(null);
-				} else {
-					factory.addConstructorArgValue(value);
-				}
-				factory.addConstructorArgValue(zookeeperRegistryCenter);
-				factory.addConstructorArgValue(jobConfig);
-				factory.addConstructorArgValue(elasticJobListeners);
-				DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-				defaultListableBeanFactory.registerBeanDefinition(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName(), factory.getBeanDefinition());
-				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName());
-				springJobScheduler.init();
-			}
-
-
+			dynamicElasticJobService.addElasticJob(job);
 		});
-	}
-
-	private List<BeanDefinition> getTargetElasticJobListeners(ElasticJobConf conf, Environment environment) {
-		List<BeanDefinition> result = new ManagedList<BeanDefinition>(2);
-		String listeners = EnvironmentUtil.getEnvironmentStringValue(environment, conf.name(), JobConfigPropertiesConstant.LISTENER, conf.listener());
-		if (StringUtils.hasText(listeners)) {
-			BeanDefinitionBuilder factory = BeanDefinitionBuilder.rootBeanDefinition(listeners);
-			factory.setScope(BeanDefinition.SCOPE_PROTOTYPE);
-			result.add(factory.getBeanDefinition());
-		}
-
-		String distributedListeners = EnvironmentUtil.getEnvironmentStringValue(environment, conf.name(), JobConfigPropertiesConstant.DISTRIBUTED_LISTENER, conf.distributedListener());
-		long startedTimeoutMilliseconds = EnvironmentUtil.getEnvironmentLongValue(environment, conf.name(), JobConfigPropertiesConstant.DISTRIBUTED_LISTENER_STARTED_TIMEOUT_MILLISECONDS, conf.startedTimeoutMilliseconds());
-		long completedTimeoutMilliseconds = EnvironmentUtil.getEnvironmentLongValue(environment, conf.name(), JobConfigPropertiesConstant.DISTRIBUTED_LISTENER_COMPLETED_TIMEOUT_MILLISECONDS, conf.completedTimeoutMilliseconds());
-
-		if (StringUtils.hasText(distributedListeners)) {
-			BeanDefinitionBuilder factory = BeanDefinitionBuilder.rootBeanDefinition(distributedListeners);
-			factory.setScope(BeanDefinition.SCOPE_PROTOTYPE);
-			factory.addConstructorArgValue(startedTimeoutMilliseconds);
-			factory.addConstructorArgValue(completedTimeoutMilliseconds);
-			result.add(factory.getBeanDefinition());
-		}
-		return result;
 	}
 
 	/**
@@ -175,6 +72,13 @@ public class JobConfParserUtil implements ApplicationContextAware {
 		int monitorPort = EnvironmentUtil.getEnvironmentIntValue(environment, jobName, JobConfigPropertiesConstant.MONITOR_PORT, conf.monitorPort());
 		int maxTimeDiffSeconds = EnvironmentUtil.getEnvironmentIntValue(environment, jobName, JobConfigPropertiesConstant.MAX_TIME_DIFF_SECONDS, conf.maxTimeDiffSeconds());
 		int reconcileIntervalMinutes = EnvironmentUtil.getEnvironmentIntValue(environment, jobName, JobConfigPropertiesConstant.RECONCILE_INTERVAL_MINUTES, conf.reconcileIntervalMinutes());
-		return ElasticJob.builder().reconcileIntervalMinutes(reconcileIntervalMinutes).maxTimeDiffSeconds(maxTimeDiffSeconds).monitorPort(monitorPort).shardingTotalCount(shardingTotalCount).streamingProcess(streamingProcess).monitorExecution(monitorExecution).disabled(disabled).overwrite(overwrite).misfire(misfire).failover(failover).scriptCommandLine(scriptCommandLine).jobShardingStrategyClass(jobShardingStrategyClass).executorServiceHandle(executorServiceHandler).jobClass(jobClass).jobName(jobName).jobClass(jobClass).shardingItemParameters(shardingItemParameters).description(description).jobParameter(jobParameter).cron(cron).jobExceptionHanprivatedler(jobExceptionHandler).build();
+		return ElasticJob.builder().reconcileIntervalMinutes(reconcileIntervalMinutes).
+				maxTimeDiffSeconds(maxTimeDiffSeconds).monitorPort(monitorPort).shardingTotalCount(shardingTotalCount).
+				streamingProcess(streamingProcess).monitorExecution(monitorExecution).
+				disabled(disabled).overwrite(overwrite).misfire(misfire).failover(failover).
+				scriptCommandLine(scriptCommandLine).jobShardingStrategyClass(jobShardingStrategyClass).
+				executorServiceHandle(executorServiceHandler).jobClass(jobClass).jobName(jobName).jobClass(jobClass)
+				.shardingItemParameters(shardingItemParameters).description(description)
+				.jobParameter(jobParameter).cron(cron).jobExceptionHanprivatedler(jobExceptionHandler).build();
 	}
 }
