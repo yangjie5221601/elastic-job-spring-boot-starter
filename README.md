@@ -50,7 +50,22 @@
 
 	}
        }
+      3.4 动态添加定时任务:
+     1自定义job定时任务:
+     public class TestJob implements SimpleJob {
+	@Override
+	public void execute(ShardingContext shardingContext) {
+		System.out.println("ces -------------------");
+	}
+    }
+    2 注入servicebean
+    @Resource
+    private DynamicElasticJobService dynamicElasticJobService;
+    3 调用add方法添加定时任务
+    ElasticJob job=new ElasticJob("SimpleJob","com.guazi.xinche.wtable.service.biz.job.TestJob","测试","0/5 * * * * ?");
+    dynamicElasticJobService.addElasticJob(job);     
  4 elastic-job-spring-boot-starter更新日志:
-   
+   1.0.1:
+   1.0.2:支持动态添加定时任务
  5 联系我们
      微信:Y704593386
