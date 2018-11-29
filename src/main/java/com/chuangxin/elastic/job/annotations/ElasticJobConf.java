@@ -188,4 +188,11 @@ public @interface ElasticJobConf {
 	 * @return
 	 */
 	String executorServiceHandler() default "com.dangdang.ddframe.job.executor.handler.impl.DefaultExecutorServiceHandler";
+
+	/**
+	 * 作业事件追踪的数据源Bean引用
+	 * @return
+	 */
+	String eventTraceRdbDataSource() default "";
+
 }

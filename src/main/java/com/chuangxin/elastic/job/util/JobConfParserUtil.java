@@ -54,6 +54,7 @@ public class JobConfParserUtil implements ApplicationContextAware {
 	private ElasticJob convert2Model(ElasticJobConf conf, Environment environment, Class clz) {
 		String jobClass = clz.getName();
 		String jobName = conf.name();
+		String jobTypeName = clz.getInterfaces()[0].getSimpleName();
 		String cron = EnvironmentUtil.getEnvironmentStringValue(environment, jobName, JobConfigPropertiesConstant.CRON, conf.cron());
 		String shardingItemParameters = EnvironmentUtil.getEnvironmentStringValue(environment, jobName, JobConfigPropertiesConstant.SHARDING_ITEM_PARAMETERS, conf.shardingItemParameters());
 		String description = EnvironmentUtil.getEnvironmentStringValue(environment, jobName, JobConfigPropertiesConstant.DESCRIPTION, conf.description());
@@ -62,6 +63,7 @@ public class JobConfParserUtil implements ApplicationContextAware {
 		String executorServiceHandler = EnvironmentUtil.getEnvironmentStringValue(environment, jobName, JobConfigPropertiesConstant.EXECUTOR_SERVICE_HANDLER, conf.executorServiceHandler());
 		String jobShardingStrategyClass = EnvironmentUtil.getEnvironmentStringValue(environment, jobName, JobConfigPropertiesConstant.JOB_SHARDING_STRATEGY_CLASS, conf.jobShardingStrategyClass());
 		String scriptCommandLine = EnvironmentUtil.getEnvironmentStringValue(environment, jobName, JobConfigPropertiesConstant.SCRIPT_COMMAND_LINE, conf.scriptCommandLine());
+		String eventTraceRdbDataSource = EnvironmentUtil.getEnvironmentStringValue(environment, jobName, JobConfigPropertiesConstant.EVENT_TRACE_RDB_DATA_SOURCE, conf.eventTraceRdbDataSource());
 		boolean failover = EnvironmentUtil.getEnvironmentBooleanValue(environment, jobName, JobConfigPropertiesConstant.FAILOVER, conf.failover());
 		boolean misfire = EnvironmentUtil.getEnvironmentBooleanValue(environment, jobName, JobConfigPropertiesConstant.MISFIRE, conf.misfire());
 		boolean overwrite = EnvironmentUtil.getEnvironmentBooleanValue(environment, jobName, JobConfigPropertiesConstant.OVERWRITE, conf.overwrite());
@@ -79,6 +81,6 @@ public class JobConfParserUtil implements ApplicationContextAware {
 				scriptCommandLine(scriptCommandLine).jobShardingStrategyClass(jobShardingStrategyClass).
 				executorServiceHandle(executorServiceHandler).jobClass(jobClass).jobName(jobName).jobClass(jobClass)
 				.shardingItemParameters(shardingItemParameters).description(description)
-				.jobParameter(jobParameter).cron(cron).jobExceptionHanprivatedler(jobExceptionHandler).build();
+				.jobParameter(jobParameter).cron(cron).jobExceptionHanprivatedler(jobExceptionHandler).eventTraceRdbDataSource(eventTraceRdbDataSource).jobTypeName(jobTypeName).build();
 	}
 }

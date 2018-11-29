@@ -10,6 +10,7 @@ import com.dangdang.ddframe.job.config.JobTypeConfiguration;
 import com.dangdang.ddframe.job.config.dataflow.DataflowJobConfiguration;
 import com.dangdang.ddframe.job.config.script.ScriptJobConfiguration;
 import com.dangdang.ddframe.job.config.simple.SimpleJobConfiguration;
+import com.dangdang.ddframe.job.event.rdb.JobEventRdbConfiguration;
 import com.dangdang.ddframe.job.executor.handler.JobProperties;
 import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
 import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
@@ -104,6 +105,11 @@ public class DynamicElasticJobServiceImpl implements DynamicElasticJobService {
 				factory.addConstructorArgValue(zookeeperRegistryCenter);
 				factory.addConstructorArgValue(jobConfig);
 				factory.addConstructorArgValue(elasticJobListeners);
+				if (StringUtils.hasText(job.getEventTraceRdbDataSource())) {
+					BeanDefinitionBuilder rdbFactory = BeanDefinitionBuilder.rootBeanDefinition(JobEventRdbConfiguration.class);
+					rdbFactory.addConstructorArgReference(job.getEventTraceRdbDataSource());
+					factory.addConstructorArgValue(rdbFactory.getBeanDefinition());
+				}
 				DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 				defaultListableBeanFactory.registerBeanDefinition(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName(), factory.getBeanDefinition());
 				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName());
