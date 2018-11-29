@@ -21,6 +21,7 @@
       3.2 application.yml添加以下配置项
             elastic.job.zk.serverLists=localhost:2181 //多个zk逗号分割
             elastic.job.zk.namespace=order-wtable-job
+	    elastic.job.enable=true// true启动false不启动
 
       3.3 定义任务
        @Log4j2
