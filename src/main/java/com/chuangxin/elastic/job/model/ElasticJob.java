@@ -44,6 +44,7 @@ public class ElasticJob {
 	private long completedTimeoutMilliseconds = Long.MAX_VALUE;
 	private String listener = Strings.EMPTY;
 	private String eventTraceRdbDataSource = Strings.EMPTY;
+	private boolean monitorJobRegister = false;
 
 	/**
 	 * 自定义添加定时任务
