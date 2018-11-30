@@ -104,12 +104,12 @@ public class DynamicElasticJobServiceImpl implements DynamicElasticJobService {
 				}
 				factory.addConstructorArgValue(zookeeperRegistryCenter);
 				factory.addConstructorArgValue(jobConfig);
-				factory.addConstructorArgValue(elasticJobListeners);
 				if (StringUtils.hasText(job.getEventTraceRdbDataSource())) {
 					BeanDefinitionBuilder rdbFactory = BeanDefinitionBuilder.rootBeanDefinition(JobEventRdbConfiguration.class);
 					rdbFactory.addConstructorArgReference(job.getEventTraceRdbDataSource());
 					factory.addConstructorArgValue(rdbFactory.getBeanDefinition());
 				}
+				factory.addConstructorArgValue(elasticJobListeners);
 				DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
 				defaultListableBeanFactory.registerBeanDefinition(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName(), factory.getBeanDefinition());
 				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName());
