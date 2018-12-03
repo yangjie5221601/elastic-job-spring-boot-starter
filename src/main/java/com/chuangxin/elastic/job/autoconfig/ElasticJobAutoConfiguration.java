@@ -1,6 +1,5 @@
 package com.chuangxin.elastic.job.autoconfig;
 
-import com.chuangxin.elastic.job.util.JobConfParserUtil;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperConfiguration;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,16 +39,6 @@ public class ElasticJobAutoConfiguration {
 		ZookeeperRegistryCenter center = new ZookeeperRegistryCenter(config);
 		return center;
 
-	}
-
-	/**
-	 * 初始化elastic job解析类
-	 *
-	 * @return
-	 */
-	@Bean
-	public JobConfParserUtil jobConfParserUtil() {
-		return new JobConfParserUtil();
 	}
 
 }

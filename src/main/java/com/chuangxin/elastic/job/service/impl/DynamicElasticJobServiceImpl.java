@@ -1,6 +1,5 @@
 package com.chuangxin.elastic.job.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.chuangxin.elastic.job.config.JobConfigPropertiesConstant;
 import com.chuangxin.elastic.job.enums.ElasticJobTypeName;
 import com.chuangxin.elastic.job.model.ElasticJob;
@@ -18,10 +17,6 @@ import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -126,10 +121,6 @@ public class DynamicElasticJobServiceImpl implements DynamicElasticJobService {
 				defaultListableBeanFactory.registerBeanDefinition(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName(), factory.getBeanDefinition());
 				SpringJobScheduler springJobScheduler = (SpringJobScheduler) applicationContext.getBean(SPRING_JOB_SCHEDULER_PREFIX + job.getJobName());
 				springJobScheduler.init();
-				//非注解初始化任务需要监控初始化zk数据
-				if (job.isMonitorJobRegister()) {
-					monitorJobRegister();
-				}
 			}
 		} catch (Exception e) {
 			log.error("init task error:", e);
@@ -179,41 +170,5 @@ public class DynamicElasticJobServiceImpl implements DynamicElasticJobService {
 		return result;
 	}
 
-	/**
-	 * 开启任务监听,当有任务添加时，监听zk中的数据增加，自动在其他节点也初始化该任务
-	 */
-	private void monitorJobRegister() {
-		CuratorFramework client = zookeeperRegistryCenter.getClient();
-		@SuppressWarnings("resource")
-		PathChildrenCache childrenCache = new PathChildrenCache(client, "/", true);
-		PathChildrenCacheListener childrenCacheListener = new PathChildrenCacheListener() {
-			@Override
-			public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-				ChildData data = event.getData();
-				switch (event.getType()) {
-					case CHILD_ADDED:
-						String config = new String(client.getData().forPath(data.getPath() + "/config"));
-						ElasticJob job = JSON.parseObject(config, ElasticJob.class);
-						//启动时任务会添加数据触发事件，这边需要去掉第一次的触发，不然在控制台进行手动触发任务会执行两次任务
-						if (!JOB_ADD_COUNT.containsKey(job.getJobName())) {
-							JOB_ADD_COUNT.put(job.getJobName(), new AtomicInteger());
-						}
-						int count = JOB_ADD_COUNT.get(job.getJobName()).incrementAndGet();
-						if (count > 1) {
-							addElasticJob(job);
-						}
-						break;
-					default:
-						break;
-				}
-			}
-		};
-		childrenCache.getListenable().addListener(childrenCacheListener);
-		try {
-			childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
 
 }
